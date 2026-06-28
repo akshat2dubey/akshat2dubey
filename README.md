@@ -10,7 +10,7 @@ I am a Computer Science Engineering student focused on building secure, efficien
 
 ## 📅 Current Cybersecurity Focus (6-Month Roadmap)
 I am currently working through a structured foundational security roadmap. My immediate milestones are:
-- [ ] **Month 1:** Mastering Linux Terminal Fundamentals & Core Networking Protocols (TCP/IP, DNS, HTTP)
+- [ /] **Month 1:** Mastering Linux Terminal Fundamentals & Core Networking Protocols (TCP/IP, DNS, HTTP)
 - [ ] **Month 2:** Bash & Python Scripting for Security Automation
 - [ ] **Month 3:** Web Application Vulnerabilities & OWASP Top 10 (PortSwigger Academy)
 
