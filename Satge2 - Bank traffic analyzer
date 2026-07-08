@@ -1,0 +1,322 @@
+# 📡 Stage 1 — BankTraffic Analyzer
+
+> **SecureBank Lab** · Stage 1 of 9 · Days 1–6
+
+```
+securebank-traffic-analyzer/
+├── bank_traffic_analyzer.py   ← main analyzer script
+├── read_pcap.py               ← PCAP loader + stats
+├── detect_portscans.py        ← SYN scan detector
+├── results/                   ← output JSON + reports
+├── samples/                   ← sample PCAP files
+├── tests/
+│   └── test_analyzer.py
+├── requirements.txt
+├── README.md
+└── STAGE1_COMPLETE.md
+
+## 🎯 Goal
+
+Network traffic analyze karna seekhna — packet capture, protocol dissection, aur anomaly detection — ek Python-based CLI tool ke through jo banking environment ki suspicious activity flag kare.
+
+## 📦 Deliverable
+
+> **`bank_traffic_analyzer.py`** — Python CLI tool jo PCAP files read kare aur suspicious bank traffic automatically detect + report kare.
+
+## 📅 Sub-Stage Targets
+
+### Day 1 — Networking Fundamentals
+**Theory (Morning)**
+- OSI Model — 7 layers, har layer ka role
+- TCP/IP stack — packets kaise travel karte hain
+- IP addressing, subnetting, CIDR notation
+- DNS, HTTP, HTTPS, FTP — bank environment mein use
+
+**Lab (Mid-morning)**
+- Wireshark install + setup
+- Basic filter: `ip.addr == x.x.x.x`
+- HTTP traffic capture — GET/POST observe karo
+- TCP 3-way handshake visualize karo (SYN → SYN-ACK → ACK)
+
+**Theory (Afternoon)**
+- TCP flags — SYN, ACK, FIN, RST, PSH
+- UDP vs TCP — kab kya use hota hai
+- Port numbers — 80, 443, 22, 3306, 5432
+- NAT, PAT — banking network topology
+
+**Project (Evening)**
+- [ ] `securebank-traffic-analyzer/` folder structure banao
+- [ ] `README.md` — project scope define karo
+- [ ] Sample PCAP file download karo (Wireshark sample captures)
+- [ ] 5 interesting packets manually analyze + document karo
+
+### Day 2 — Protocol Deep Dive
+**Theory (Morning)**
+- HTTP/HTTPS — headers, methods, status codes
+- TLS handshake — certificate exchange process
+- DNS resolution — A, CNAME, MX records
+- ARP — MAC address resolution, ARP spoofing awareness
+
+**Lab (Mid-morning)**
+- HTTPS traffic capture — TLS records observe karo
+- `dns` filter in Wireshark — queries aur responses
+- `arp` filter — ARP requests track karo
+- Follow TCP Stream — full HTTP conversation dekhо
+
+**Theory (Afternoon)**
+- VLAN tagging — 802.1Q
+- ICMP — ping, traceroute, TTL
+- DHCP — IP assignment process
+- Banking protocols — ISO 8583 awareness
+
+**Project (Evening)**
+- [ ] `protocols.md` — har protocol ki notes
+- [ ] Wireshark screenshots folder mein save karo
+- [ ] Normal vs suspicious traffic examples document karo
+
+### Day 3 — Python + Scapy Basics
+**Theory (Morning)**
+- Python networking libraries — `socket`, `scapy`, `dpkt`
+- Scapy — packet manipulation library overview
+- PCAP format — file structure
+- Raw sockets vs high-level libraries
+
+**Lab (Mid-morning)**
+```bash
+pip install scapy
+```
+- `rdpcap('file.pcap')` — PCAP load karo
+- `pkt.show()` — packet layers explore karo
+- Basic filter: sirf TCP packets print karo
+
+**Theory (Afternoon)**
+- Scapy layers — `Ether / IP / TCP / UDP / Raw`
+- Packet fields access: `pkt[IP].src`, `pkt[TCP].dport`
+- BPF filters — Berkeley Packet Filter syntax
+- Tshark command-line basics
+
+**Project (Evening)**
+- [ ] `read_pcap.py` — PCAP file read karna + stats print karo
+- [ ] Output: total packets, unique IPs, top ports
+- [ ] Sample PCAP pe script run karo
+- [ ] `results/` folder mein output save karo
+
+**Starter Code:**
+```python
+from scapy.all import rdpcap, IP, TCP
+
+packets = rdpcap('sample.pcap')
+ips = set()
+for pkt in packets:
+    if IP in pkt:
+        ips.add(pkt[IP].src)
+        ips.add(pkt[IP].dst)
+
+print(f"Total packets : {len(packets)}")
+print(f"Unique IPs    : {len(ips)}")
+```
+
+### Day 4 — Traffic Analysis Logic
+**Theory (Morning)**
+- Network anomaly detection concepts
+- Baseline traffic — normal vs abnormal behavior
+- Port scanning patterns — SYN scan, full connect scan
+- Data exfiltration traffic signatures
+
+**Lab (Mid-morning)**
+- Wireshark Statistics → Conversations
+- `io.stat` filter — traffic over time graph
+- Expert Information tab — errors aur warnings
+- `nmap` basic scan on localhost
+
+**Theory (Afternoon)**
+- Intrusion Detection — signature vs anomaly based
+- SNORT rules basics — alert syntax overview
+- NetFlow/sFlow — traffic summarization
+- Banking fraud traffic patterns — unusual amounts, odd hours
+
+**Project (Evening)**
+- [ ] `detect_portscans.py` — SYN scan detect karo
+- [ ] Flag IPs doing >100 SYN packets in 10 sec
+- [ ] Output log: `suspicious_ips.txt`
+- [ ] Test with `nmap` scan against localhost
+
+### Day 5 — BankTraffic Analyzer — Core Build
+**Theory (Morning)**
+- Protocol anomaly detection algorithms
+- Entropy analysis — encrypted vs plaintext traffic
+- Geo-IP lookup — flagging foreign IPs
+- Threshold-based alerting logic
+
+**Lab (Mid-morning)**
+- `dpkt` library for fast PCAP parsing
+- Extract all HTTP requests + URLs from PCAP
+- Find credentials in plaintext HTTP traffic
+- Statistics: bytes per IP, packets per second
+
+**Theory (Afternoon)**
+- Time-series analysis of network traffic
+- Whitelisting known good IPs
+- Alert severity levels — Low / Medium / High / Critical
+- Report generation from script output
+
+**Project (Evening) — MAIN BUILD**
+- [ ] `bank_traffic_analyzer.py` — complete analyzer
+- [ ] Feature: Port scan detection
+- [ ] Feature: Unusual port access flagging
+- [ ] Feature: Large data transfer detection
+- [ ] Feature: Off-hours traffic alerting
+- [ ] Output: structured JSON report + human-readable summary
+
+**Core Script Structure:**
+```python
+import 
+from scapy.all import rdpcap, IP, TCP, UDP
+import json
+from datetime import datetime
+
+def analyze(pcap_file, threshold=100):
+    packets = rdpcap(pcap_file)
+    alerts  = []
+    syn_count = {}
+
+    for pkt in packets:
+        if IP in pkt and TCP in pkt:
+            src = pkt[IP].src
+            # SYN scan detection
+            if pkt[TCP].flags == 'S':
+                syn_count[src] = syn_count.get(src, 0) + 1
+                if syn_count[src] > threshold:
+                    alerts.append({
+                        'type'    : 'PORT_SCAN',
+                        'src_ip'  : src,
+                        'severity': 'HIGH',
+                        'detail'  : f'{syn_count[src]} SYN packets'
+                    })
+    return alerts
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='BankTraffic Analyzer')
+    parser.add_argument('--input',     required=True,  help='PCAP file path')
+    parser.add_argument('--output',    default='results/report.json')
+    parser.add_argument('--threshold', type=int, default=100)
+    args = parser.parse_args()
+
+    alerts = analyze(args.input, args.threshold)
+    with open(args.output, 'w') as f:
+        json.dump(alerts, f, indent=2)
+    print(f"[+] Analysis complete — {len(alerts)} alerts → {args.output}")
+```
+
+### Day 6 — Polish + Document
+**Theory (Morning)**
+- Code review checklist
+- Python `argparse` — CLI tool design best practices
+- `logging` module — proper log levels
+- Documentation best practices
+
+**Lab (Mid-morning)**
+- `--input` `--output` `--threshold` CLI flags add karo
+- Colorized terminal output with `rich` library
+- `test_analyzer.py` — unit tests likhо
+- Large PCAP pe script speed profile karo
+
+**Theory (Afternoon)**
+- README structure for security tools
+- Markdown formatting — headers, code blocks, tables
+- GitHub best practices — `.gitignore` for security tools
+- Threat report writing
+
+**Project (Evening) — FINAL DELIVERABLE**
+- [ ] `bank_traffic_analyzer.py` — complete + tested
+- [ ] `README.md` — install, usage, output format, examples
+- [ ] `sample_output.json` — example output file
+- [ ] `STAGE1_COMPLETE.md` — what you learned + evidence
+- [ ] All code committed to GitHub
+
+## 🚀 Usage
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run analyzer on a PCAP file
+python bank_traffic_analyzer.py --input samples/bank_traffic.pcap --output results/report.json
+
+# With custom threshold
+python bank_traffic_analyzer.py --input samples/bank_traffic.pcap --threshold 50
+```
+
+## 📊 Detection Capabilities
+
+| Detection Type | Trigger Condition | Severity |
+|---|---|---|
+| Port Scan | >100 SYN packets from single IP in 10s | 🔴 HIGH |
+| Large Transfer | >10MB outbound to single IP | 🔴 HIGH |
+| Off-Hours Traffic | Transactions between 2 AM – 5 AM | 🟡 MEDIUM |
+| Unusual Port Access | Non-standard port access (not 80/443/22) | 🟡 MEDIUM |
+| Foreign IP | Source IP from outside India | 🟡 MEDIUM |
+| Protocol Anomaly | Unencrypted data on HTTPS port | 🟠 HIGH |
+
+## 📤 Sample Output
+
+```json
+[
+  {
+    "type"     : "PORT_SCAN",
+    "src_ip"   : "192.168.1.105",
+    "severity" : "HIGH",
+    "detail"   : "237 SYN packets in 10 seconds",
+    "timestamp": "2025-10-14T02:34:11"
+  },
+  {
+    "type"     : "OFF_HOURS_TRAFFIC",
+    "src_ip"   : "10.0.0.22",
+    "severity" : "MEDIUM",
+    "detail"   : "Rs. 8,40,000 transfer at 03:17 AM",
+    "timestamp": "2025-10-14T03:17:42"
+  }
+]
+```
+
+## 🛠️ Tech Stack
+
+| Tool |        | Purpose |
+| Python 3.11 | Core language |
+| Scapy ||   | Packet capture + parsing |
+| dpkt ||    | Fast PCAP file processing |
+| Wireshark/tshark || Manual traffic analysis |
+| nmap ||  | Port scan simulation for testing |
+| rich ||  | Colorized CLI output |
+
+## 📚 Resources
+
+| Topic ||          | Resource |
+| Networking basics | [Wireshark Wiki](https://wiki.wireshark.org) |
+| Scapy docs | [scapy.readthedocs.io](https://scapy.readthedocs.io) |
+| Sample PCAPs | [Wireshark Sample Captures](https://wiki.wireshark.org/SampleCaptures) |
+| Protocol reference | RFC index — ietf.org |
+
+---
+
+## ✅ Stage 1 Completion Checklist
+
+- [ ] Wireshark 5 different protocols analyze kiye
+- [ ] `read_pcap.py` — working PCAP parser
+- [ ] `detect_portscans.py` — SYN scan detector
+- [ ] `bank_traffic_analyzer.py` — complete CLI tool (4 detection types)
+- [ ] `requirements.txt` — all dependencies listed
+- [ ] `README.md` — setup + usage documented
+- [ ] `STAGE1_COMPLETE.md` — learning evidence
+- [ ] All code pushed to GitHub
+
+---
+
+## ➡️ Next Stage
+
+**[Stage 2 — SecureBank Linux Server](../securebank-linux-server/README.md)** · Days 7–13
+
+SSH hardening · Firewall rules · System hardening · Log management
+
+---
+
+*SecureBank Lab · Akshat Dubey · Cyber Threat Analyst*
